@@ -47,9 +47,12 @@ class App:
         self.search_button = tk.Button(self.root, text="Rechercher", command=self.rechercher)
         self.search_button.pack(pady=10)
 
-        # Bouton pour afficher les favoris
+        # Boutons pour afficher les favoris et tous les chapitres
         self.show_favoris_button = tk.Button(self.root, text="Afficher les favoris", command=self.afficher_favoris)
         self.show_favoris_button.pack(pady=10)
+
+        self.show_all_button = tk.Button(self.root, text="Afficher tous les chapitres", command=self.afficher_tous)
+        self.show_all_button.pack(pady=10)
 
         # Cadre de navigation (table des matières)
         self.navigation_frame = tk.Frame(self.root)
@@ -116,6 +119,10 @@ class App:
             self.afficher_chapitres(favoris_chapitres)
         else:
             messagebox.showinfo("Favoris", "Aucun chapitre favori.")
+
+    def afficher_tous(self):
+        # Afficher tous les chapitres
+        self.afficher_chapitres(self.chapitres)
 
     def afficher_chapitres(self, chapitres):
         # Effacer les anciens boutons de chapitres
@@ -207,10 +214,10 @@ class App:
         self.toggle_button.config(bg="lightgray", fg="black")
 
         for button in self.chapitre_buttons:
-            button.config(bg="white", fg="black")
+            button.config(bg="lightgray", fg="black")
 
 
-# Création de la fenêtre principale
+# Initialisation de l'application
 root = tk.Tk()
 app = App(root)
 root.mainloop()
