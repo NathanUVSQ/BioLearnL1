@@ -4,11 +4,12 @@ from PIL import Image, ImageTk  # Importation de Pillow
 
 
 class Chapitre:
-    def __init__(self, titre, resume, contenu, images_paths=[]):
+    def __init__(self, titre, resume, contenu, images_paths=[], favoris=False):
         self.titre = titre
         self.resume = resume
         self.contenu = contenu
         self.images_paths = images_paths  # Liste des chemins des images
+        self.favoris = favoris  # Indicateur de chapitre favori
 
 
 class App:
@@ -35,6 +36,20 @@ class App:
                 ["cellulaire_image1.jpg", "cellulaire_image2.jpg"]
             )
         ]
+
+        # Champ de recherche et bouton
+        self.search_label = tk.Label(self.root, text="Rechercher un mot-clé:")
+        self.search_label.pack(padx=10, pady=5)
+
+        self.search_entry = tk.Entry(self.root, width=50)
+        self.search_entry.pack(padx=10, pady=5)
+
+        self.search_button = tk.Button(self.root, text="Rechercher", command=self.rechercher)
+        self.search_button.pack(pady=10)
+
+        # Bouton pour afficher les favoris
+        self.show_favoris_button = tk.Button(self.root, text="Afficher les favoris", command=self.afficher_favoris)
+        self.show_favoris_button.pack(pady=10)
 
         # Cadre de navigation (table des matières)
         self.navigation_frame = tk.Frame(self.root)
@@ -71,6 +86,56 @@ class App:
 
         # Appliquer les couleurs par défaut (mode clair)
         self.apply_light_mode()
+
+    def rechercher(self):
+        # Récupérer le mot-clé de la recherche
+        keyword = self.search_entry.get().lower()
+
+        if not keyword:
+            messagebox.showinfo("Recherche", "Veuillez entrer un mot-clé.")
+            return
+
+        # Filtrer les chapitres contenant le mot-clé
+        resultats = []
+        for chapitre in self.chapitres:
+            if (keyword in chapitre.titre.lower() or
+                    keyword in chapitre.resume.lower() or
+                    keyword in chapitre.contenu.lower()):
+                resultats.append(chapitre)
+
+        # Si des chapitres ont été trouvés, les afficher
+        if resultats:
+            self.afficher_chapitres(resultats)
+        else:
+            messagebox.showinfo("Recherche", f"Aucun chapitre trouvé pour '{keyword}'.")
+
+    def afficher_favoris(self):
+        # Afficher uniquement les chapitres favoris
+        favoris_chapitres = [chapitre for chapitre in self.chapitres if chapitre.favoris]
+        if favoris_chapitres:
+            self.afficher_chapitres(favoris_chapitres)
+        else:
+            messagebox.showinfo("Favoris", "Aucun chapitre favori.")
+
+    def afficher_chapitres(self, chapitres):
+        # Effacer les anciens boutons de chapitres
+        for widget in self.navigation_frame.winfo_children():
+            widget.destroy()
+
+        # Créer des boutons pour chaque chapitre trouvé
+        for chapitre in chapitres:
+            button = tk.Button(self.navigation_frame, text=chapitre.titre,
+                               command=lambda c=chapitre: self.afficher_contenu(c))
+            button.pack(fill="x", pady=5)
+            # Ajouter un bouton pour ajouter/supprimer des favoris
+            fav_button = tk.Button(self.navigation_frame, text="⭐" if not chapitre.favoris else "Supprimer des favoris",
+                                   command=lambda c=chapitre: self.toggle_favoris(c))
+            fav_button.pack(fill="x", pady=5)
+
+    def toggle_favoris(self, chapitre):
+        # Basculer l'état des favoris
+        chapitre.favoris = not chapitre.favoris
+        self.afficher_contenu(chapitre)  # Mettre à jour l'affichage du chapitre
 
     def afficher_contenu(self, chapitre):
         # Affichage du titre et du texte
