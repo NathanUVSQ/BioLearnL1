@@ -12,6 +12,7 @@ class Chapitre:
         self.favoris = favoris  # Indicateur de chapitre favori
 
 
+
 class App:
     def __init__(self, root):
         self.root = root
@@ -24,15 +25,15 @@ class App:
         # Liste des chapitres avec des images
         self.chapitres = [
             Chapitre(
-                "Génétique",
-                "Introduction à la génétique.",
-                "Contenu détaillé sur la génétique...",
+                "Bi202: Biologie moléculaire et cellulaire, le microscope",
+                "Bi202",
+                "être vivant: \n un systeme organisé \n capable de synthétiser et de dégrader (anabolisme/catabolisme) \n se reproduit \n naissance et mort \n dynamique \n \n \n Cellule: 25 micro-m, entre 1 et 1000 micro-m cube \n \n MICROSCOPE: \n optique 400/700 nm, filtre: contraste de phase, interférence différentielle, fond noir, fond clair \n microscope confocal = plusieurs plan plus détaillé. \n prélevement \n fixation \n inclusion \n Microtome \n Lame \n Marquage (cytochimie, immunocytochimie, cytoenzymologie) \n \n EPIFLUORESCENCE: \n fluorochrome: Molécules fluorescente quand excité par onde spécifique. emet une onde plus grande mais moins energétique. \n \n \n ELECTRONIQUE: \n MEB: moins précis, ne traverse pas les couches, colonne sous vide \n MET: plus précis, ultraMicrotome, traitement métaux : ombrage \n cryofracture: congelé avec azote, ouvre bicouches, Réplique + ombrage(45 degrés) ",
                 ["genetique_image1.jpg", "genetique_image2.jpg", "genetique_image3.jpg"]
             ),
             Chapitre(
-                "Biologie cellulaire",
-                "Fonctions et structures des cellules.",
-                "Contenu détaillé sur la biologie cellulaire...",
+                "Bi202: Biologie moléculaire et cellulaire, La cellule",
+                "la cellule",
+                "NOYAUX: Gros élément sphérique central délimité par deux membranes apellé enveloppe. Il y a dessus des ports nucléaires et d'autres édifices controlant les échanges \n fonction: stocke info génétique, contrôle expression des gènes, duplique ADN. \n Composition: euchromatine: moins dense comparé à hétérochromatine | Nucléole: site ARN ribosomique et maturation + assemblage sous unités \n \n RETICULUM ENDOPLASMIQUE (RE) \n réseau de membrane interconnecté délimitant des cavités l'interieur des cavité est nommé Lumen. \n deux types: RER rugueux ou granuleux et REL lisse. \n Fonction: REL: stockage calcium, messageavec, synthèse lipide, détoxification... RER: traduction de 30% de la voie de sécrétion, modification post trad, transmet à l'appareil de Golgi. \n \n APPAREIL DE GOLGI: \n forme de demi cercle, ensemble de sacs membranaires = saccules \n Fonction: modif post trad + trie en fonction de la destination \n \n VESICULES: \n élément sphériques délimité par une membrane \n type de vésilules: EXOCYTOSE (libère contenu à l'exterieur, mvt centrifuge) et ENDOCYTOSE (prélève élément, mvt centripète) \n \n LYSOSOME: \n Fonction: dégrade constituant non fonctionel et/ou pathogène avec des enzymes comme les protéases, nucléases, lipase, hydrolase... \n \n PEROXYSOME: \n Fonction: réaction d'oxydation acides gras ou peroxyde d'hydrogène",
                 ["cellulaire_image1.jpg", "cellulaire_image2.jpg"]
             )
         ]
@@ -60,7 +61,7 @@ class App:
 
         self.chapitre_buttons = []
         for chapitre in self.chapitres:
-            button = tk.Button(self.navigation_frame, text=chapitre.titre,
+            button = tk.Button(self.navigation_frame, text=chapitre.resume,
                                command=lambda c=chapitre: self.afficher_contenu(c), width=20)
             button.pack(fill="x", pady=5)
             self.chapitre_buttons.append(button)
@@ -72,8 +73,14 @@ class App:
         self.titre_label = tk.Label(self.contenu_frame, text="", font=("Arial", 16, "bold"))
         self.titre_label.pack(pady=10)
 
-        self.contenu_text = tk.Text(self.contenu_frame, wrap="word", height=10, width=50)
-        self.contenu_text.pack()
+
+
+        # Créer un widget Text pour afficher le contenu
+        self.contenu_text = tk.Text(self.contenu_frame, wrap="word", height=10, width=50, font = "Arial")
+        self.contenu_text.pack(fill="both", expand=True)  # Utilisation de 'expand=True' pour remplir l'espace
+
+        # Créer une balise "rouge" pour le texte
+        self.contenu_text.tag_configure("rouge", foreground="red")
 
         # Cadre pour afficher la galerie d'images
         self.galerie_frame = tk.Frame(self.contenu_frame)
@@ -90,6 +97,8 @@ class App:
 
         # Appliquer les couleurs par défaut (mode clair)
         self.apply_light_mode()
+
+
 
     def rechercher(self):
         # Récupérer le mot-clé de la recherche
@@ -153,6 +162,14 @@ class App:
         # Effacer les anciennes vignettes d'image
         for widget in self.galerie_frame.winfo_children():
             widget.destroy()
+
+        # Chercher les mots dans le texte et l'appliquer en rouge
+        keywords = ["cellule", "taxons", ""]
+        for i in keywords:
+            start_index = self.contenu_text.search(i, 1.0, tk.END)
+            if start_index:
+                end_index = f"{start_index}+{len(i)}c"
+                self.contenu_text.tag_add("rouge", start_index, end_index)
 
         # Créer des vignettes d'image pour chaque image du chapitre
         for image_path in chapitre.images_paths:
