@@ -16,7 +16,7 @@ class App:
     def __init__(self, root):
         self.root = root
         self.root.title("Répertoire de Connaissances en Bio")
-        self.root.geometry("900x600")
+        self.root.geometry("1000x600")
 
         # Mode par défaut : clair
         self.mode_sombre = False
@@ -37,37 +37,37 @@ class App:
             )
         ]
 
-        # Champ de recherche et bouton
-        self.search_label = tk.Label(self.root, text="Rechercher un mot-clé:")
-        self.search_label.pack(padx=10, pady=5)
+        # Cadre de contrôle du mode sombre et de navigation
+        self.control_frame = tk.Frame(self.root, pady=10)
+        self.control_frame.pack(fill="x", side="top", padx=20)
 
-        self.search_entry = tk.Entry(self.root, width=50)
-        self.search_entry.pack(padx=10, pady=5)
+        self.show_favoris_button = tk.Button(self.control_frame, text="Afficher les favoris",
+                                             command=self.afficher_favoris, width=20)
+        self.show_favoris_button.pack(side="left", padx=5)
 
-        self.search_button = tk.Button(self.root, text="Rechercher", command=self.rechercher)
-        self.search_button.pack(pady=10)
+        self.show_all_button = tk.Button(self.control_frame, text="Afficher tous les chapitres",
+                                         command=self.afficher_tous, width=20)
+        self.show_all_button.pack(side="left", padx=5)
 
-        # Boutons pour afficher les favoris et tous les chapitres
-        self.show_favoris_button = tk.Button(self.root, text="Afficher les favoris", command=self.afficher_favoris)
-        self.show_favoris_button.pack(pady=10)
-
-        self.show_all_button = tk.Button(self.root, text="Afficher tous les chapitres", command=self.afficher_tous)
-        self.show_all_button.pack(pady=10)
+        # Bouton pour basculer entre le mode sombre et clair
+        self.toggle_button = tk.Button(self.control_frame, text="Passer au mode sombre", command=self.toggle_mode,
+                                       width=20)
+        self.toggle_button.pack(side="right", padx=5)
 
         # Cadre de navigation (table des matières)
-        self.navigation_frame = tk.Frame(self.root)
-        self.navigation_frame.pack(side="left", fill="y", padx=10, pady=10)
+        self.navigation_frame = tk.Frame(self.root, width=200, bg="#f0f0f0", pady=10)
+        self.navigation_frame.pack(side="left", fill="y", padx=10)
 
         self.chapitre_buttons = []
         for chapitre in self.chapitres:
             button = tk.Button(self.navigation_frame, text=chapitre.titre,
-                               command=lambda c=chapitre: self.afficher_contenu(c))
+                               command=lambda c=chapitre: self.afficher_contenu(c), width=20)
             button.pack(fill="x", pady=5)
             self.chapitre_buttons.append(button)
 
         # Cadre d'affichage du contenu
-        self.contenu_frame = tk.Frame(self.root)
-        self.contenu_frame.pack(side="right", fill="both", expand=True, padx=10, pady=10)
+        self.contenu_frame = tk.Frame(self.root, pady=10)
+        self.contenu_frame.pack(side="right", fill="both", expand=True, padx=20)
 
         self.titre_label = tk.Label(self.contenu_frame, text="", font=("Arial", 16, "bold"))
         self.titre_label.pack(pady=10)
@@ -83,9 +83,10 @@ class App:
         self.image_label = tk.Label(self.contenu_frame)
         self.image_label.pack(pady=10)
 
-        # Bouton pour basculer entre le mode sombre et clair
-        self.toggle_button = tk.Button(self.root, text="Passer au mode sombre", command=self.toggle_mode)
-        self.toggle_button.pack(pady=10)
+        # Bouton pour ajouter aux favoris
+        self.add_fav_button = tk.Button(self.contenu_frame, text="Ajouter aux favoris", command=self.toggle_favoris,
+                                        width=30)
+        self.add_fav_button.pack(pady=10)
 
         # Appliquer les couleurs par défaut (mode clair)
         self.apply_light_mode()
@@ -132,17 +133,16 @@ class App:
         # Créer des boutons pour chaque chapitre trouvé
         for chapitre in chapitres:
             button = tk.Button(self.navigation_frame, text=chapitre.titre,
-                               command=lambda c=chapitre: self.afficher_contenu(c))
+                               command=lambda c=chapitre: self.afficher_contenu(c), width=20)
             button.pack(fill="x", pady=5)
-            # Ajouter un bouton pour ajouter/supprimer des favoris
-            fav_button = tk.Button(self.navigation_frame, text="⭐" if not chapitre.favoris else "Supprimer des favoris",
-                                   command=lambda c=chapitre: self.toggle_favoris(c))
-            fav_button.pack(fill="x", pady=5)
 
-    def toggle_favoris(self, chapitre):
-        # Basculer l'état des favoris
-        chapitre.favoris = not chapitre.favoris
-        self.afficher_contenu(chapitre)  # Mettre à jour l'affichage du chapitre
+    def toggle_favoris(self):
+        # Basculer l'état des favoris pour le chapitre actuellement affiché
+        chapitre_actuel = self.get_chapitre_actuel()
+        chapitre_actuel.favoris = not chapitre_actuel.favoris
+
+        # Mise à jour de l'affichage
+        self.afficher_contenu(chapitre_actuel)
 
     def afficher_contenu(self, chapitre):
         # Affichage du titre et du texte
@@ -156,7 +156,6 @@ class App:
 
         # Créer des vignettes d'image pour chaque image du chapitre
         for image_path in chapitre.images_paths:
-            # Charger l'image et la redimensionner en petite taille (vignette)
             try:
                 image = Image.open(image_path)
                 image.thumbnail((100, 100))  # Redimensionner l'image pour créer la vignette
@@ -170,6 +169,12 @@ class App:
             except Exception as e:
                 messagebox.showerror("Erreur", f"Impossible de charger l'image : {e}")
 
+        # Afficher ou masquer le bouton "Ajouter aux favoris" en fonction de l'état actuel du chapitre
+        if chapitre.favoris:
+            self.add_fav_button.config(text="Retirer des favoris")
+        else:
+            self.add_fav_button.config(text="Ajouter aux favoris")
+
     def afficher_image(self, image_path):
         # Afficher l'image en taille réelle lorsqu'une vignette est cliquée
         try:
@@ -180,6 +185,13 @@ class App:
             self.image_label.image = photo  # Sauvegarder la référence de l'image
         except Exception as e:
             messagebox.showerror("Erreur", f"Impossible d'afficher l'image : {e}")
+
+    def get_chapitre_actuel(self):
+        # Retourner le chapitre actuellement affiché
+        for chapitre in self.chapitres:
+            if self.titre_label.cget("text") == chapitre.titre:
+                return chapitre
+        return None
 
     def toggle_mode(self):
         # Basculer entre le mode sombre et le mode clair
